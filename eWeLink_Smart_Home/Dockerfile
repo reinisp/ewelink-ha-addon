@@ -1,7 +1,4 @@
-# ARG BUILD_FROM
-# FROM $BUILD_FROM
-
-FROM node:21-slim
+FROM --platform=linux/arm64 arm64v8/node:14-slim
 ENV CK_API_ENV=prod
 RUN apt-get update && apt-get install -y python build-essential
 RUN mkdir -p /workspace/node_modules
