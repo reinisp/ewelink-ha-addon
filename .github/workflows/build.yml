@@ -1,0 +1,35 @@
+name: Push the Docker image to AWS ECR Repo
+on:
+  push:
+    branches:
+      - master
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  Build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::767828720475:role/github-oidc-provider-aws
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: eu-central-1
+
+      - name: Sts GetCallerIdentity
+        run: aws sts get-caller-identity
+
+      - name: Build, tag, and push the image to Amazon ECR
+        id: build-image
+        env:
+          IMAGE_TAG: latest
+        run: |
+          aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/v7m3y0a5
+          docker build --progress=plain -t e-we-link-addon ./eWeLink_Smart_Home
+          docker tag e-we-link-addon:$IMAGE_TAG public.ecr.aws/v7m3y0a5/e-we-link-addon:$IMAGE_TAG
+          docker push public.ecr.aws/v7m3y0a5/e-we-link-addon:$IMAGE_TAG
